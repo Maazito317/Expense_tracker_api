@@ -8,5 +8,20 @@ services:
       - db_data:/var/lib/postgresql/data  # Persist data across container restarts
     ports:
       - "5432:5432"                    # Expose container’s 5432 on host’s 5432
+
+  tester:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - .:/app                      # mount your code into the container
+    env_file:
+      - .env                        # loads POSTGRES_USER, POSTGRES_PASSWORD, etc.
+    depends_on:
+      - db
+    command: >
+      bash -c "
+        pip install --no-cache-dir -r requirements.txt &&
+        python test_db.py
+      "
 volumes:
   db_data: {}                           # Named volume for persistent storage
