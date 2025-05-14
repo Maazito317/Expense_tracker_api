@@ -1,7 +1,15 @@
 # app/routers/auth.py
 
-from fastapi import APIRouter, HTTPException, status
+import datetime
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+
+from app.models import User
+from app.database import get_db
+from app.auth import get_password_hash
 
 router = APIRouter()
 
@@ -10,6 +18,14 @@ router = APIRouter()
 class SignupRequest(BaseModel):
     email: str
     password: str
+    name: Optional[str] = None
+
+
+class SignupResponse(BaseModel):
+    id: int
+    email: str
+    name: Optional[str] = None
+    created_at: datetime
 
 
 class LoginRequest(BaseModel):
@@ -17,14 +33,26 @@ class LoginRequest(BaseModel):
     password: str
 
 
-@router.post("/signup", status_code=status.HTTP_201_CREATED)
-async def signup(req: SignupRequest):
-    """
-    ---  
-    Placeholder for user signup logic.  
-    Will validate input, hash password, and create a new user.
-    """
-    return {"message": "Signup endpoint reached", "email": req.email}
+@router.post("/signup", response_model=SignupResponse, status_code=status.HTTP_201_CREATED)
+async def signup(req: SignupRequest, db: Session = Depends(get_db)):
+    # Check for existing user
+    existing = db.query(User).filter(User.email == req.email).first()
+    if existing:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+
+    # Hash password and create user
+    hashed_pw = get_password_hash(req.password)
+    user = User(email=req.email, password=hashed_pw, name=req.name)
+    db.add(user)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+
+    db.refresh(user)
+
+    return SignupResponse(id=user.id, email=user.email, name=user.name, created_at=user.created_at)
 
 
 @router.post("/login")
