@@ -1,5 +1,6 @@
+from typing import Annotated
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordBearer
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
@@ -22,7 +23,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # http bearer for jwt
-bearer_scheme = HTTPBearer()
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/login")
+
+db_dependency = Annotated[Session, Depends(get_db)]
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -56,41 +59,44 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     """
 
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    # print(f"ALGORITHM during token creation: {ALGORITHM}")
+    # print(f"SECRET_KEY during token decoding: {SECRET_KEY}")
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    db: Session = Depends(get_db),
+    token: Annotated[str, Depends(oauth2_bearer)],
+    db: db_dependency,
 ) -> User:
-    print("Incoming credentials:", credentials)
-
-    # 2) Extract the token
-    token = credentials.credentials
-
-    # 3) Common 401 exception
+    # Common 401 exception
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-
-    # 4) Decode & verify the JWT
+    decoded_payload = jwt.get_unverified_claims(token)
+    print(decoded_payload)
+    # Decode & verify the JWT
     try:
+        # print("Starting JWT decode")
+        # print(f"Token: {token}")
+        # print(f"SECRET_KEY: {SECRET_KEY}, ALGORITHM: {ALGORITHM}")
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        print(f"user id: {user_id}")
+        # print(payload)
+        user_id: str = payload.get("user_id")
         if user_id is None:
+            # print("User ID not found in token payload.")
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
+        # print(f"JWTError: {e}")
         raise credentials_exception
 
     # 5) Load the user from the DB
     user = db.query(User).get(int(user_id))
     if not user:
+        # print("User not found in database.")
         raise credentials_exception
 
     return user

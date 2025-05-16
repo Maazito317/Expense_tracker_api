@@ -8,7 +8,7 @@ app = FastAPI(
 )
 
 # Mount the auth router under /auth
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+app.include_router(auth.router)
 
 # Mount the expenses router under /expenses
-app.include_router(expenses.router, prefix="/expenses", tags=["Expenses"])
+app.include_router(expenses.router)

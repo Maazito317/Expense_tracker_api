@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Annotated, List, Optional
 from sqlalchemy.orm import Session
 from datetime import date
 
@@ -12,10 +12,10 @@ from app.models import Expense, ExpenseCategory, User
 # from app.auth import get_current_user  # will inject the logged-in user
 # from app.database import SessionLocal
 
-router = APIRouter(
-    tags=["Expenses"],
-    dependencies=[Depends(get_current_user)],
-)
+router = APIRouter(prefix="/expenses", tags=["Expenses"])
+
+db_dependency = Annotated[Session, Depends(get_db)]
+user_dependency = Annotated[User, Depends(get_current_user)]
 
 
 class ExpenseIn(BaseModel):
@@ -41,15 +41,11 @@ class ExpenseOut(ExpenseIn):
     response_model=List[ExpenseOut]
 )
 async def list_expenses(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: db_dependency,
+    current_user: user_dependency
 ):
-    """
-    ---  
-    Placeholder for listing expenses.  
-    Will query the DB for the current user’s records.
-    """
-    return []
+    expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
+    return expenses
 
 
 @router.post(
@@ -59,8 +55,8 @@ async def list_expenses(
 )
 async def create_expense(
     exp_in: ExpenseIn,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: db_dependency,
+    current_user: user_dependency
 ):
     # Validate the category
     try:
@@ -94,7 +90,7 @@ async def create_expense(
 
 
 @router.put("/{expense_id}", response_model=ExpenseOut)
-async def update_expense(expense_id: int, exp: ExpenseIn, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def update_expense(expense_id: int, exp: ExpenseIn, db: db_dependency, current_user: user_dependency):
     """
     ---  
     Placeholder for updating an expense by ID.
@@ -103,7 +99,7 @@ async def update_expense(expense_id: int, exp: ExpenseIn, db: Session = Depends(
 
 
 @router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_expense(expense_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def delete_expense(expense_id: int, db: db_dependency, current_user: user_dependency):
     """
     ---  
     Placeholder for deleting an expense by ID.
