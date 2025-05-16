@@ -2,17 +2,17 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from sqlalchemy.orm import Session
+from datetime import date
 
 from app.auth import get_current_user
 from app.database import get_db
-from app.models import User
+from app.models import Expense, ExpenseCategory, User
 # from app.auth import get_current_user  # will inject the logged-in user
 # from app.database import SessionLocal
 
 router = APIRouter(
-    prefix="/expenses",
     tags=["Expenses"],
     dependencies=[Depends(get_current_user)],
 )
@@ -27,10 +27,23 @@ class ExpenseIn(BaseModel):
 
 class ExpenseOut(ExpenseIn):
     id: int
+    amount: float
+    category: str
+    date: date
+    description: Optional[str] = None
+
+    class Config:
+        orm_mode = True
 
 
-@router.get("/", response_model=List[ExpenseOut])
-async def list_expenses(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+@router.get(
+    "/",
+    response_model=List[ExpenseOut]
+)
+async def list_expenses(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """
     ---  
     Placeholder for listing expenses.  
@@ -39,14 +52,45 @@ async def list_expenses(db: Session = Depends(get_db), current_user: User = Depe
     return []
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=ExpenseOut)
-async def create_expense(exp: ExpenseIn, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """
-    ---  
-    Placeholder for creating an expense.  
-    Will insert into the DB and return the new record.
-    """
-    return {**exp.model_dump(), "id": 1}
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ExpenseOut
+)
+async def create_expense(
+    exp_in: ExpenseIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # Validate the category
+    try:
+        category = ExpenseCategory(exp_in.category)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid category: {exp_in.category}"
+        )
+
+    # Build the expense object
+    expense = Expense(
+        user_id=current_user.id,
+        amount=exp_in.amount,
+        category=category,
+        date=exp_in.date,
+        description=exp_in.description or ""
+    )
+    db.add(expense)
+
+    # Commit and refresh to populate the ID
+    db.commit()
+    db.refresh(expense)
+    return ExpenseOut(
+        id=expense.id,
+        amount=float(expense.amount),
+        category=expense.category.value,
+        date=expense.date,
+        description=expense.description
+    )
 
 
 @router.put("/{expense_id}", response_model=ExpenseOut)

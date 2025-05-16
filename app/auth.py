@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
@@ -21,8 +21,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# oauth for jwt
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+# http bearer for jwt
+bearer_scheme = HTTPBearer()
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
@@ -61,21 +62,35 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> User:
+    print("Incoming credentials:", credentials)
+
+    # 2) Extract the token
+    token = credentials.credentials
+
+    # 3) Common 401 exception
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    # 4) Decode & verify the JWT
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
+        print(f"user id: {user_id}")
         if user_id is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
 
+    # 5) Load the user from the DB
     user = db.query(User).get(int(user_id))
     if not user:
         raise credentials_exception
+
     return user

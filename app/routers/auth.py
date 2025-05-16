@@ -97,7 +97,7 @@ async def login(req: LoginRequest, db: Session = Depends(get_db)):
 
     expires_delta = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.email},
+        data={"sub": user.id},
         expires_delta=expires_delta
     )
     expires_at = datetime.now(timezone.utc) + expires_delta
