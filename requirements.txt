@@ -8,7 +8,6 @@ click==8.2.0
 cryptography==44.0.3
 dotenv==0.9.9
 ecdsa==0.19.1
--e git+ssh://git@github.com/Maazito317/Expense_tracker_api.git@fcd05981d608b7609e285c0eec92591276db6cb0#egg=expense_tracker_api
 fastapi==0.115.12
 h11==0.16.0
 httpcore==1.0.9
