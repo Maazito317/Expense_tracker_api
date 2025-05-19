@@ -57,6 +57,13 @@ async def list_expenses(
             start_date = today - timedelta(days=90)
         end_date = today
 
+    if start_date is not None and end_date is not None:
+        if start_date > end_date:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="start_date cannot be after end_date"
+            )
+
     query = db.query(Expense).filter(Expense.user_id == current_user.id)
     if start_date:
         query = query.filter(Expense.date >= start_date)
