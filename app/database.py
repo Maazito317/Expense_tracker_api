@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 
 # 1) Load .env file from project root
 load_dotenv()
@@ -28,15 +28,10 @@ SessionLocal = sessionmaker(
 )
 
 
-def test_connection():
+def get_db() -> Session:
+    """Yield a new Session per request and close it when done."""
+    db = SessionLocal()
     try:
-        db = SessionLocal()
-        db.execute(text("SELECT 1"))  # Wrapped in text()
-        print("✅ Database connection successful!")
-    except Exception as e:
-        print("❌ Database connection failed:", e)
+        yield db
     finally:
         db.close()
-
-
-test_connection()
