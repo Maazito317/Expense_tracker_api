@@ -178,3 +178,16 @@ cython_debug/
 
 # DS Store files
 .DS_Store
+
+# Terraform local state
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+
+# Exclude .terraform plugin directory
+.terraform/
+
+# Terraform var files
+terraform.tfvars
