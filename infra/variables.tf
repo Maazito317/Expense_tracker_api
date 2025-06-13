@@ -47,3 +47,9 @@ variable "POSTGRES_PORT" {
   type        = string
   default     = "5432"
 }
+
+variable "POSTGRES_HOST" {
+  description = "Postgres hostname for CI builds"
+  type        = string
+  default     = "localhost"
+}

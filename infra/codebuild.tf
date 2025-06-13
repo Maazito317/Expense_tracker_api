@@ -43,6 +43,13 @@ resource "aws_codebuild_project" "app_build" {
       name  = "ENV"
       value = "ci"
     }
+
+    # Full SQLAlchemy URL so migrations know the port
+   environment_variable {
+     name  = "DATABASE_URL"
+     # interpolate all your Postgres vars into one URL
+     value = "postgresql://${var.POSTGRES_USER}:${var.POSTGRES_PASSWORD}@${var.POSTGRES_HOST}:${var.POSTGRES_PORT}/${var.POSTGRES_DB}"
+   }
   }
 
   logs_config {
