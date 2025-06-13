@@ -18,6 +18,7 @@ DATABASE_URL = (
     f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
+print(f"DATABASE_URL: {DATABASE_URL}")
 # 4) Create engine and session factory as before
 engine = create_engine(DATABASE_URL, echo=True, future=True)
 SessionLocal = sessionmaker(
