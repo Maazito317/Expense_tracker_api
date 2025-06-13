@@ -18,7 +18,17 @@ DATABASE_URL = (
     f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
-print(f"DATABASE_URL: {DATABASE_URL}")
+if not DATABASE_URL:
+    # Debug print for each component
+    print(f"[DEBUG_PY] POSTGRES_PORT={DB_PORT}", flush=True)
+    print("[DEBUG_PY] using fallback URL", flush=True)
+    DATABASE_URL = (
+        f"postgresql://{DB_USER}:{DB_PASSWORD}"
+        f"@{DB_HOST}:{DB_PORT}/"
+        f"{DB_NAME}"
+    )
+
+print(f"[DEBUG_PY] FINAL DATABASE_URL={DATABASE_URL}", flush=True)
 # 4) Create engine and session factory as before
 engine = create_engine(DATABASE_URL, echo=True, future=True)
 SessionLocal = sessionmaker(

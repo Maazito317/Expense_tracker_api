@@ -12,6 +12,10 @@ phases:
 
   pre_build:
     commands:
+      - echo "[DEBUG_ENV] POSTGRES_PORT=$POSTGRES_PORT"
+      - echo "[DEBUG_ENV] POSTGRES_HOST=$POSTGRES_HOST"
+      - echo "[DEBUG_ENV] POSTGRES_USER=$POSTGRES_USER"
+      - echo "[DEBUG_ENV] POSTGRES_DB=$POSTGRES_DB"
       - |
         docker run -d --name postgres-ci \
           -e POSTGRES_USER=$POSTGRES_USER \
