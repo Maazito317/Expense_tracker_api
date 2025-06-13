@@ -1,0 +1,49 @@
+variable "aws_region" {
+  description = "AWS region to deploy resources into"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "github_owner" {
+  description = "GitHub organization or user owning the repo"
+  type        = string
+}
+
+variable "github_repo" {
+  description = "Name of the GitHub repository"
+  type        = string
+}
+
+variable "github_oauth_token" {
+  description = "GitHub OAuth token for CodePipeline source"
+  type        = string
+  sensitive   = true
+}
+
+variable "artifact_bucket_prefix" {
+  description = "Prefix for naming the S3 bucket"
+  type        = string
+  default     = ""
+}
+
+# ← New Postgres variables:
+variable "POSTGRES_USER" {
+  description = "Postgres username for CI"
+  type        = string
+}
+
+variable "POSTGRES_PASSWORD" {
+  description = "Postgres password for CI"
+  type        = string
+}
+
+variable "POSTGRES_DB" {
+  description = "Postgres database name for CI"
+  type        = string
+}
+
+variable "POSTGRES_PORT" {
+  description = "Postgres port"
+  type        = string
+  default     = "5432"
+}
