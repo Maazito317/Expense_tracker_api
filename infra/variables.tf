@@ -53,3 +53,20 @@ variable "POSTGRES_HOST" {
   type        = string
   default     = "localhost"
 }
+
+variable "SECRET_KEY" {
+  description = "JWT signing secret"
+  type        = string
+}
+
+variable "ALGORITHM" {
+  description = "JWT signing algorithm"
+  type        = string
+  default     = "HS256"
+}
+
+variable "ACCESS_TOKEN_EXPIRE_MINUTES" {
+  description = "JWT expiry (minutes)"
+  type        = string
+  default     = "100"
+}
