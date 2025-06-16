@@ -12,3 +12,12 @@ app.include_router(auth.router)
 
 # Mount the expenses router under /expenses
 app.include_router(expenses.router)
+
+
+@app.get("/health", tags=["Health"])
+async def health_check():
+    """
+    A simple health check endpoint.
+    Returns 200 if the application is up.
+    """
+    return {"status": "ok"}

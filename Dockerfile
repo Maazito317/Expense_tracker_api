@@ -1,17 +1,19 @@
-# Dockerfile
 FROM python:3.11-slim
 
-# 1) Set working directory
 WORKDIR /app
 
-# 2) Copy only requirements first (cache layer)
+# 1) Install dependencies
 COPY requirements.txt .
-
-# 3) Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 4) Copy the rest of your code
+# 2) Copy code
 COPY . .
 
-# 5) Default to bash so you can override with 'docker-compose run tester <cmd>'
-CMD ["bash"]
+# 3) Document the listen port
+EXPOSE 8000
+
+# 4) Use bash -lc so command overrides still work
+ENTRYPOINT ["bash", "-lc"]
+
+# 5) Default to launching Uvicorn for production
+CMD ["uvicorn app.main:app --host 0.0.0.0 --port 8000"]
