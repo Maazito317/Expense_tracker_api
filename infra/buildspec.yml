@@ -20,7 +20,8 @@ phases:
       - pip install -e .
       - pip install pytest pytest-asyncio httpx
       # Authenticate Docker to Amazon ECR
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION \
+      - |
+        aws ecr get-login-password --region $AWS_DEFAULT_REGION \
         | docker login --username AWS --password-stdin $REPO_URI
 
   pre_build:
@@ -50,8 +51,7 @@ phases:
       # 3) Push to ECR
       - docker push $REPO_URI:$IMAGE_TAG
       # 4) Prepare the ECS Deploy artifact
-      - printf '[{"name":"expense-tracker-api","imageUri":"%s"}]' \
-          "$REPO_URI:$IMAGE_TAG" > imagedefinitions.json
+      - printf '[{"name":"expense-tracker-api","imageUri":"%s"}]' "$REPO_URI:$IMAGE_TAG" > imagedefinitions.json
 
 artifacts:
   files:
