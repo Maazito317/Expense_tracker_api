@@ -25,7 +25,8 @@ resource "aws_codebuild_project" "app_build" {
     }
     environment_variable {
       name  = "POSTGRES_PASSWORD"
-      value = var.POSTGRES_PASSWORD
+      type  = "SECRETS_MANAGER"
+      value = aws_secretsmanager_secret.db_password.arn
     }
     environment_variable {
       name  = "POSTGRES_DB"
@@ -52,7 +53,8 @@ resource "aws_codebuild_project" "app_build" {
     }
     environment_variable {
       name  = "SECRET_KEY"
-      value = var.SECRET_KEY
+      type  = "SECRETS_MANAGER"
+      value = aws_secretsmanager_secret.app_secret_key.arn
     }
     environment_variable {
       name  = "ALGORITHM"
