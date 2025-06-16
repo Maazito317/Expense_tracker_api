@@ -2,10 +2,6 @@
 # infra/notifications.tf
 #####################################################
 
-# locals {
-#   repo_sanitized = lower(replace(var.github_repo, "_", "-"))
-# }
-
 resource "aws_sns_topic" "ci_alerts" {
   name = "${local.repo_sanitized}-ci-alerts"
 }
