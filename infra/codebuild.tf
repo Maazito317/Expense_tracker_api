@@ -25,7 +25,8 @@ resource "aws_codebuild_project" "app_build" {
     }
     environment_variable {
       name  = "POSTGRES_PASSWORD"
-      value = var.POSTGRES_PASSWORD
+      type  = "SECRETS_MANAGER"
+      value = aws_secretsmanager_secret.db_password.arn
     }
     environment_variable {
       name  = "POSTGRES_DB"
@@ -45,23 +46,24 @@ resource "aws_codebuild_project" "app_build" {
     }
 
     # Full SQLAlchemy URL so migrations know the port
-   environment_variable {
-     name  = "DATABASE_URL"
-     # interpolate all your Postgres vars into one URL
-     value = "postgresql://${var.POSTGRES_USER}:${var.POSTGRES_PASSWORD}@${var.POSTGRES_HOST}:${var.POSTGRES_PORT}/${var.POSTGRES_DB}"
-   }
-   environment_variable {
-     name  = "SECRET_KEY"
-     value = var.SECRET_KEY
-   }
-   environment_variable {
-     name  = "ALGORITHM"
-     value = var.ALGORITHM
-   }
-   environment_variable {
-     name  = "ACCESS_TOKEN_EXPIRE_MINUTES"
-     value = var.ACCESS_TOKEN_EXPIRE_MINUTES
-   }
+    environment_variable {
+      name = "DATABASE_URL"
+      # interpolate all your Postgres vars into one URL
+      value = "postgresql://${var.POSTGRES_USER}:${var.POSTGRES_PASSWORD}@${var.POSTGRES_HOST}:${var.POSTGRES_PORT}/${var.POSTGRES_DB}"
+    }
+    environment_variable {
+      name  = "SECRET_KEY"
+      type  = "SECRETS_MANAGER"
+      value = aws_secretsmanager_secret.app_secret_key.arn
+    }
+    environment_variable {
+      name  = "ALGORITHM"
+      value = var.ALGORITHM
+    }
+    environment_variable {
+      name  = "ACCESS_TOKEN_EXPIRE_MINUTES"
+      value = var.ACCESS_TOKEN_EXPIRE_MINUTES
+    }
   }
 
   logs_config {

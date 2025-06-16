@@ -43,3 +43,26 @@ resource "aws_iam_role_policy_attachment" "pipeline_attach" {
   role       = aws_iam_role.pipeline_role.name
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
+
+resource "aws_iam_policy" "codebuild_secrets_access" {
+  name        = "${var.github_repo}-codebuild-secrets"
+  description = "Allow CodeBuild to read secrets"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = ["secretsmanager:GetSecretValue"]
+        Effect = "Allow"
+        Resource = [
+          aws_secretsmanager_secret.app_secret_key.arn,
+          aws_secretsmanager_secret.db_password.arn
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "codebuild_secrets_attach" {
+  role       = aws_iam_role.codebuild_role.name
+  policy_arn = aws_iam_policy.codebuild_secrets_access.arn
+}
