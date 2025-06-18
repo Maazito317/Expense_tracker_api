@@ -5,11 +5,18 @@ resource "aws_ecs_service" "app" {
   launch_type     = "FARGATE"
   desired_count   = 1
 
-  # 3.3.1 Network settings for Fargate (awsvpc)
+  # Run tasks privately in your VPC, behind the ALB
   network_configuration {
     subnets          = data.aws_subnets.default.ids
     security_groups  = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
+  }
+
+  # Attach each container to the ALB target group
+  load_balancer {
+    target_group_arn = aws_lb_target_group.app.arn # from infra/alb.tf
+    container_name   = local.repo_sanitized        # must match the name in your task def
+    container_port   = 8000
   }
 
   # 3.3.2 Deployment settings (optional tuning)

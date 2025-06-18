@@ -7,7 +7,8 @@ resource "random_id" "id" {
 }
 
 resource "aws_s3_bucket" "ci_artifacts" {
-  bucket = "${local.repo_sanitized}-artifacts-${random_id.id.hex}"
+  bucket        = "${local.repo_sanitized}-artifacts-${random_id.id.hex}"
+  force_destroy = true
   # No ACL block—ACLs are owner-enforced by default
 }
 

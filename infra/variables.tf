@@ -70,3 +70,8 @@ variable "ACCESS_TOKEN_EXPIRE_MINUTES" {
   type        = string
   default     = "100"
 }
+
+variable "route53_zone_id" {
+  description = "The ID of the public Route 53 Hosted Zone (e.g. Z123ABC4DEF567)"
+  type        = string
+}
