@@ -1,9 +1,29 @@
 resource "aws_ecr_repository" "app_repo" {
   name                 = local.repo_sanitized
-  force_delete         = true
-  image_tag_mutability = "IMMUTABLE" # prevents re-pushing the same tag
+  image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
-    scan_on_push = true # auto-scan every new image for vulnerabilities
+    scan_on_push = true
   }
+}
+
+# Optionally: lifecycle policy to auto-delete old images
+resource "aws_ecr_lifecycle_policy" "expire_untagged" {
+  repository = aws_ecr_repository.app_repo.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Expire untagged images older than 7 days"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countNumber = 7
+          countUnit   = "days"
+        }
+        action = { type = "expire" }
+      }
+    ]
+  })
 }

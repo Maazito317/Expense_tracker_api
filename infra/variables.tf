@@ -1,9 +1,11 @@
+# AWS variables for Terraform configuration
 variable "aws_region" {
   description = "AWS region to deploy resources into"
   type        = string
   default     = "us-east-1"
 }
 
+# GitHub variables for CodePipeline source
 variable "github_owner" {
   description = "GitHub organization or user owning the repo"
   type        = string
@@ -20,13 +22,7 @@ variable "github_oauth_token" {
   sensitive   = true
 }
 
-variable "artifact_bucket_prefix" {
-  description = "Prefix for naming the S3 bucket"
-  type        = string
-  default     = ""
-}
-
-# ← New Postgres variables:
+# Postgres variables for CodeBuild and CI:
 variable "POSTGRES_USER" {
   description = "Postgres username for CI"
   type        = string
@@ -54,6 +50,7 @@ variable "POSTGRES_HOST" {
   default     = "localhost"
 }
 
+# JWT variables for authentication
 variable "SECRET_KEY" {
   description = "JWT signing secret"
   type        = string
@@ -71,7 +68,7 @@ variable "ACCESS_TOKEN_EXPIRE_MINUTES" {
   default     = "100"
 }
 
-variable "route53_zone_id" {
-  description = "The ID of the public Route 53 Hosted Zone (e.g. Z123ABC4DEF567)"
-  type        = string
-}
+# variable "route53_zone_id" {
+#   description = "The ID of the public Route 53 Hosted Zone (e.g. Z123ABC4DEF567)"
+#   type        = string
+# }

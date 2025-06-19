@@ -1,7 +1,3 @@
-#####################################################
-# infra/notifications.tf
-#####################################################
-
 resource "aws_sns_topic" "ci_alerts" {
   name = "${local.repo_sanitized}-ci-alerts"
 }
@@ -9,7 +5,7 @@ resource "aws_sns_topic" "ci_alerts" {
 resource "aws_sns_topic_subscription" "email_sub" {
   topic_arn = aws_sns_topic.ci_alerts.arn
   protocol  = "email"
-  endpoint  = "your.email@example.com"
+  endpoint  = "m.maazk317@gmail.com"
 }
 
 resource "aws_cloudwatch_event_rule" "pipeline_failed" {

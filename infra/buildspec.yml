@@ -24,12 +24,9 @@ phases:
         aws ecr get-login-password --region $AWS_DEFAULT_REGION \
         | docker login --username AWS --password-stdin $REPO_URI
 
+
   pre_build:
     commands:
-      - echo "[DEBUG_ENV] POSTGRES_PORT=$POSTGRES_PORT"
-      - echo "[DEBUG_ENV] POSTGRES_HOST=$POSTGRES_HOST"
-      - echo "[DEBUG_ENV] POSTGRES_USER=$POSTGRES_USER"
-      - echo "[DEBUG_ENV] POSTGRES_DB=$POSTGRES_DB"
       - |
         docker run -d --name postgres-ci \
           -e POSTGRES_USER=$POSTGRES_USER \
@@ -44,6 +41,7 @@ phases:
 
   build:
     commands:
+      - pytest -q
       # 1) Use the Git commit SHA as the image tag
       - IMAGE_TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION}
       # 2) Build and tag the image

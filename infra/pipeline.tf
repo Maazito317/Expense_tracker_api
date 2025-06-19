@@ -1,21 +1,15 @@
-############################
-# infra/pipeline.tf
-############################
-
 resource "aws_codepipeline" "ci_pipeline" {
   name     = "${var.github_repo}-pipeline"
-  role_arn = aws_iam_role.pipeline_role.arn
+  role_arn = aws_iam_role.pipeline_role.arn #iam for permissions
 
-  # 1. Artifact store: where pipeline keeps and passes files
   artifact_store {
     type     = "S3"
     location = aws_s3_bucket.ci_artifacts.bucket
   }
 
-  # 2. Source stage: pull code from GitHub
   stage {
     name = "Source"
-    action {
+    action { # actions to be performed; pull from git and run on changes to main
       name             = "GitHubSource"
       category         = "Source"
       owner            = "ThirdParty"
@@ -31,10 +25,9 @@ resource "aws_codepipeline" "ci_pipeline" {
     }
   }
 
-  # 3. Build stage: run CodeBuild on the pulled source
   stage {
     name = "Build"
-    action {
+    action { # take input form prev stage; call codebuild; 
       name             = "CodeBuild"
       category         = "Build"
       owner            = "AWS"
