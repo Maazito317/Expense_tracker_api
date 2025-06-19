@@ -1,8 +1,4 @@
-############################
-# infra/iam.tf
-############################
-
-# 1 CodeBuild Service Role
+# Allowing the role to be assumed
 data "aws_iam_policy_document" "codebuild_assume" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -12,18 +8,19 @@ data "aws_iam_policy_document" "codebuild_assume" {
     }
   }
 }
-
+# CodeBuild service role: creating the role
 resource "aws_iam_role" "codebuild_role" {
   name               = "${var.github_repo}-codebuild-role"
   assume_role_policy = data.aws_iam_policy_document.codebuild_assume.json
 }
 
+# attaching the policy to the role define above
 resource "aws_iam_role_policy_attachment" "codebuild_attach" {
   role       = aws_iam_role.codebuild_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess" # for initial learning
 }
 
-# 2 CodePipeline Service Role
+# CodePipeline service role
 data "aws_iam_policy_document" "pipeline_assume" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -33,7 +30,6 @@ data "aws_iam_policy_document" "pipeline_assume" {
     }
   }
 }
-
 resource "aws_iam_role" "pipeline_role" {
   name               = "${var.github_repo}-pipeline-role"
   assume_role_policy = data.aws_iam_policy_document.pipeline_assume.json
@@ -65,43 +61,4 @@ resource "aws_iam_policy" "codebuild_secrets_access" {
 resource "aws_iam_role_policy_attachment" "codebuild_secrets_attach" {
   role       = aws_iam_role.codebuild_role.name
   policy_arn = aws_iam_policy.codebuild_secrets_access.arn
-}
-
-data "aws_iam_policy_document" "codebuild_ecr_access" {
-  statement {
-    sid       = "AuthToken"
-    actions   = ["ecr:GetAuthorizationToken"]
-    resources = ["*"]
-  }
-
-  statement {
-    sid = "PullBaseImages"
-    actions = [
-      "ecr:BatchCheckLayerAvailability",
-      "ecr:BatchGetImage"
-    ]
-    resources = [aws_ecr_repository.app_repo.arn]
-  }
-
-  statement {
-    sid = "PushNewImages"
-    actions = [
-      "ecr:InitiateLayerUpload",
-      "ecr:UploadLayerPart",
-      "ecr:CompleteLayerUpload",
-      "ecr:PutImage"
-    ]
-    resources = [aws_ecr_repository.app_repo.arn]
-  }
-}
-
-resource "aws_iam_policy" "codebuild_ecr_policy" {
-  name        = "${local.repo_sanitized}-codebuild-ecr"
-  description = "Allow CodeBuild to push and pull images from our ECR repo"
-  policy      = data.aws_iam_policy_document.codebuild_ecr_access.json
-}
-
-resource "aws_iam_role_policy_attachment" "codebuild_ecr_attach" {
-  role       = aws_iam_role.codebuild_role.name
-  policy_arn = aws_iam_policy.codebuild_ecr_policy.arn
 }
