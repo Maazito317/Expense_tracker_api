@@ -62,3 +62,32 @@ resource "aws_iam_role_policy_attachment" "codebuild_secrets_attach" {
   role       = aws_iam_role.codebuild_role.name
   policy_arn = aws_iam_policy.codebuild_secrets_access.arn
 }
+
+data "aws_iam_policy_document" "ecr_access" {
+  statement {
+    actions = [
+      "ecr:GetAuthorizationToken",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:PutImage",
+      "ecr:InitiateLayerUpload",
+      "ecr:UploadLayerPart",
+      "ecr:CompleteLayerUpload"
+    ]
+    resources = ["*"] # Auth token is account-level
+  }
+
+  statement {
+    actions   = ["ecr:BatchGetImage"]
+    resources = [aws_ecr_repository.app_repo.arn]
+  }
+}
+
+resource "aws_iam_policy" "codebuild_ecr_policy" {
+  name   = "${local.repo_sanitized}-ecr-access"
+  policy = data.aws_iam_policy_document.ecr_access.json
+}
+
+resource "aws_iam_role_policy_attachment" "codebuild_ecr_attach" {
+  role       = aws_iam_role.codebuild_role.name
+  policy_arn = aws_iam_policy.codebuild_ecr_policy.arn
+}
