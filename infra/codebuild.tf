@@ -60,6 +60,11 @@ resource "aws_codebuild_project" "app_build" {
       name  = "ACCESS_TOKEN_EXPIRE_MINUTES"
       value = var.ACCESS_TOKEN_EXPIRE_MINUTES
     }
+    environment_variable {
+      name = "REPO_URI"
+      # This comes from the aws_ecr_repository resource in YOUR account (468…)
+      value = aws_ecr_repository.app_repo.repository_url
+    }
   }
   logs_config {
     cloudwatch_logs {
