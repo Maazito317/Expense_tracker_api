@@ -43,13 +43,13 @@ phases:
     commands:
       - pytest -q
       # 1) Use the Git commit SHA as the image tag
-      - IMAGE_TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION}
+      - IMAGE_TAG="${CODEBUILD_RESOLVED_SOURCE_VERSION}-$(date +%s)"
       # 2) Build and tag the image
       - docker build -t $REPO_URI:$IMAGE_TAG .
       # 3) Push to ECR
-      - docker tag $REPO_URI:$IMAGE_TAG $REPO_URI:latest
+      # - docker tag $REPO_URI:$IMAGE_TAG $REPO_URI:latest
       - docker push $REPO_URI:$IMAGE_TAG
-      - docker push $REPO_URI:latest
+      # - docker push $REPO_URI:latest
       # 4) Prepare the ECS Deploy artifact
       - |
         printf '[{"name":"expense-tracker-api","imageUri":"%s"}]' \

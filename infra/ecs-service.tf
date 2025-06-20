@@ -10,7 +10,14 @@ resource "aws_ecs_service" "app" {
     subnets = data.aws_subnets.default.ids # Use public subnets from the default VPC
     # If you had private subnets, you could use those too, but ensure NAT Gateway
     security_groups  = [aws_security_group.ecs_sg.id] # Applies your “allow port 8000” rules.
-    assign_public_ip = true                           # Gives each task a public IP so you can hit it directly while we wire up the ALB.
+    assign_public_ip = false                          # Gives each task a public IP so you can hit it directly while we wire up the ALB.
+  }
+
+  # Attach each container to the ALB target group
+  load_balancer {
+    target_group_arn = aws_lb_target_group.app.arn # from infra/alb.tf
+    container_name   = local.repo_sanitized        # must match the name in your task def
+    container_port   = 8000
   }
 
   # 3.3.2 Deployment settings (optional tuning)
